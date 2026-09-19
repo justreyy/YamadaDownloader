@@ -7,7 +7,7 @@ if ("serviceWorker" in navigator) {
 
 const CONFIG = {
   whatsappChannel: "https://whatsapp.com/channel/0029Vb87O3oF6smw9uLgOD0U",
-  customerService: "https://wa.me/6283869485575",
+  customerService: "https://wa.me/6283196943411",
   // Vercel Function akan membaca DOWNLOADER_API_URL dari environment.
   downloadEndpoint: "/api/download",
   // Endpoint khusus Pinterest (format respons API-nya beda dari aio).
