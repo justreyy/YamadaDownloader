@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <script src="https://quge5.com/88/tag.min.js" data-zone="274493" async data-cfasync="false"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080808">
+  <meta name="description" content="YamadaDownloader - download video dari TikTok, Instagram, dan YouTube.">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="LOGO.jpg">
+  <link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer">
+<title>YamadaDownloader</title>
+<style>
+  /* ============================================================
+     PANEL ADMIN — desain kartu berwarna (Dashboard, Website
+     Setting, Tools Populer, Maintenance Mode, Downloader Manager).
+     Semua pakai var(--surface)/var(--line)/var(--text) dari
+     style.css supaya otomatis ngikut mode terang/gelap.
+     ============================================================ */
+  .panel-error{ color:#ff6b6b; margin-top:10px; }
+  .panel-notice{ color:#c9820b; margin-top:2px; font-size:12px; }
+  body.dark-mode .panel-notice{ color:#f5b942; }
+  .panel-dashboard{ display:flex; flex-direction:column; gap:16px; }
+  .panel-dashboard[hidden]{ display:none; }
+
+  /* ===== Banner ===== */
+  .panel-hero{
+    position:relative; overflow:hidden; border-radius:20px; padding:26px 22px;
+    display:flex; align-items:center; gap:16px; color:#fff;
+    background:var(--surface);
+    border:1px solid var(--line);
+    box-shadow:none;
+  }
+  .panel-hero::before{
+    content:""; position:absolute; top:0; right:18%; width:2px; height:100%;
+    background:linear-gradient(180deg,transparent,var(--primary) 45%,transparent);
+    opacity:.5; transform:skewX(-18deg); pointer-events:none;
+  }
+  .panel-hero-logo{
+    position:relative; z-index:1; flex:none; width:56px; height:56px; border-radius:14px;
+    object-fit:cover; border:1.5px solid var(--primary); background:var(--surface2);
+  }
+  .panel-hero-text{ position:relative; z-index:1; min-width:0; }
+  .panel-hero-eyebrow{ font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; opacity:.85; font-weight:800; color:var(--primary); }
+  .panel-hero-text h2{ margin:3px 0 4px; font-size:19px; line-height:1.2; word-break:break-word; color:#fff; }
+  .panel-hero-text p{ margin:0; font-size:12px; opacity:.75; }
+
+  /* ===== Kartu section ===== */
+  .panel-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:18px;
+    padding:18px; box-shadow:none; display:flex; flex-direction:column; gap:14px;
+  }
+  .panel-card-head{ display:flex; align-items:flex-start; gap:12px; }
+  .panel-card-icon{
+    flex:none; width:42px; height:42px; border-radius:12px; display:grid; place-items:center;
+    font-size:19px; color:var(--primary); background:var(--surface2);
+  }
+  .panel-card-head h3{ margin:0 0 2px; font-size:15px; color:var(--text); }
+  .panel-card-head p{ margin:0; font-size:11.5px; color:var(--muted); }
+  .panel-card-body{ display:flex; flex-direction:column; gap:10px; }
+
+  .panel-card[data-accent] .panel-card-icon{ background:var(--surface2); color:var(--primary); }
+
+  .panel-field-label{ font-size:11px; font-weight:800; opacity:0.7; letter-spacing:.4px; }
+  .panel-input{
+    width:100%; border:1px solid var(--line); background:var(--surface2); color:var(--text);
+    border-radius:12px; padding:10px 12px; font-size:13px; font-family:inherit;
+  }
+  .panel-input:focus{ outline:2px solid var(--primary); outline-offset:1px; }
+  .panel-textarea{ resize:vertical; }
+  .panel-logo-field{ display:flex; align-items:center; gap:10px; }
+  .panel-logo-preview{
+    width:40px; height:40px; border-radius:10px; object-fit:cover;
+    border:1px solid var(--line); flex:none; background:var(--surface2);
+  }
+  .secondary-btn{
+    width:100%; text-align:center; border:1px solid var(--line); background:var(--surface2);
+    color:var(--text); border-radius:14px; padding:12px; font-weight:800; font-size:13px;
+  }
+
+  /* ===== Dashboard: grid statistik ===== */
+  .panel-stats-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .panel-stat-card{
+    background:var(--surface2); border:1px solid var(--line); border-radius:16px;
+    padding:14px; display:flex; flex-direction:column; gap:6px;
+  }
+  .panel-stat-label{ font-size:11.5px; opacity:0.65; letter-spacing:0.03em; }
+  .panel-stat-value{ font-size:24px; font-weight:800; }
+  .panel-stat-card-wide{ grid-column:1 / -1; }
+  .panel-stat-sub{ opacity:0.55; font-size:11px; }
+  .panel-status-badge{
+    display:inline-flex; align-items:center; gap:6px; width:fit-content;
+    font-size:13px; font-weight:800; padding:5px 10px; border-radius:99px;
+  }
+  .panel-status-online{ background:rgba(34,197,94,0.14); color:var(--success); }
+  .panel-status-offline{ background:rgba(239,68,68,0.14); color:var(--danger); }
+  .panel-status-unknown{ background:rgba(153,153,153,0.16); color:var(--muted); }
+
+  .popular-tools-list{ display:flex; flex-direction:column; gap:8px; }
+  .popular-tool-row{
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--surface2); border:1px solid var(--line);
+    border-radius:12px; padding:12px 14px;
+  }
+  .popular-tool-row b{ text-transform:capitalize; }
+  .popular-tool-rank{ opacity:0.5; font-size:12px; margin-right:8px; }
+  .panel-logout{ width:100%; text-align:center; }
+
+  /* ===== Downloader Manager ===== */
+  .platform-manager-list{ display:flex; flex-direction:column; gap:10px; }
+  .platform-manager-row{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background:var(--surface2); border:1px solid var(--line);
+    border-radius:14px; padding:10px 12px;
+  }
+  .platform-manager-info{ display:flex; align-items:center; gap:10px; min-width:0; flex:1; }
+  .platform-manager-icon{ width:34px; height:34px; border-radius:10px; object-fit:cover; flex:none; }
+  .platform-manager-id{ opacity:0.5; font-size:10px; text-transform:uppercase; letter-spacing:.5px; }
+  .platform-name-input{
+    display:block; width:100%; border:1px solid var(--line);
+    background:var(--surface); color:var(--text); border-radius:8px;
+    padding:6px 8px; font-size:13px; font-weight:700; margin-bottom:2px;
+  }
+  .platform-manager-row.platform-disabled{ opacity:0.55; }
+
+  /* Toggle switch ON/OFF dipakai di Downloader Manager & Maintenance Mode */
+  .toggle-switch{ position:relative; display:inline-block; width:44px; height:26px; flex:none; }
+  .toggle-switch input{ opacity:0; width:0; height:0; }
+  .toggle-slider{
+    position:absolute; cursor:pointer; inset:0; background:var(--line);
+    border-radius:99px; transition:.2s;
+  }
+  .toggle-slider::before{
+    content:""; position:absolute; height:20px; width:20px; left:3px; top:3px;
+    background:#fff; border-radius:50%; transition:.2s; box-shadow:0 2px 4px rgba(0,0,0,.35);
+  }
+  .toggle-switch input:checked + .toggle-slider{ background:var(--primary); }
+  .toggle-switch input:checked + .toggle-slider::before{ transform:translateX(18px); }
+
+  /* ===== Maintenance Mode (admin panel) ===== */
+  .maintenance-manager-row{
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--surface2); border:1px solid var(--line);
+    border-radius:14px; padding:12px 14px;
+  }
+  .maintenance-manager-label{ font-size:13px; font-weight:800; }
+  .maintenance-message-input{
+    width:100%; resize:vertical; border:1px solid var(--line);
+    background:var(--surface2); color:var(--text); border-radius:12px;
+    padding:10px 12px; font-size:13px; font-family:inherit;
+  }
+
+  /* ===== Overlay Maintenance Mode (tampilan pengunjung) ===== */
+  .maintenance-overlay{
+    position:fixed; inset:0; z-index:200; display:flex; align-items:center;
+    justify-content:center; padding:24px;
+    background:rgba(10,20,30,0.72); backdrop-filter:blur(6px);
+  }
+  .maintenance-overlay[hidden]{ display:none; }
+  .maintenance-box{
+    width:min(92vw,380px); background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:28px 24px;
+    text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.5); color:var(--text);
+  }
+  .maintenance-icon{ font-size:38px; margin-bottom:8px; }
+  .maintenance-box h2{ margin:0 0 8px; font-size:18px; color:var(--text); }
+  .maintenance-box p{ margin:0 0 18px; font-size:13px; color:var(--muted); line-height:1.5; word-break:break-word; }
+  .maintenance-box .primary-btn{ width:100%; }
+  .maintenance-box .back-btn{ width:100%; margin-top:6px; }
+  body.dark-mode .maintenance-box{ background:var(--surface); color:var(--text); }
+  body.dark-mode .maintenance-box p{ color:var(--muted); }
+
+  @media(max-width:420px){
+    .panel-hero{ flex-direction:column; align-items:flex-start; text-align:left; }
+  }
+</style>
+</head>
+<body>
+
+<div
+  id="removeBgModal"
+  class="remove-bg-modal"
+>
+
+  <div class="remove-bg-box">
+
+    <button
+      class="remove-bg-close"
+      onclick="closeRemoveBg()"
+    >
+      <i class="fas fa-times"></i>
+    </button>
+
+    <div class="remove-bg-header">
+
+      <div class="remove-bg-big-icon">
+        <i class="fas fa-wand-magic-sparkles"></i>
+      </div>
+
+      <h2>Remove Background</h2>
+
+      <p>
+        Hapus background gambar dengan cepat
+      </p>
+
+    </div>
+
+    <label
+      class="remove-bg-upload"
+      for="removeBgFile"
+    >
+
+      <input
+        type="file"
+        id="removeBgFile"
+        accept="image/png,image/jpeg,image/webp"
+        hidden
+      >
+
+      <i class="fas fa-cloud-arrow-up"></i>
+
+      <strong>
+        Pilih gambar
+      </strong>
+
+      <span>
+        PNG • JPG • WEBP
+      </span>
+
+    </label>
+
+    <div
+      id="removeBgPreview"
+      class="remove-bg-preview"
+    ></div>
+
+    <button
+      id="removeBgButton"
+      class="remove-bg-button"
+      onclick="processRemoveBg()"
+    >
+      <i class="fas fa-wand-magic-sparkles"></i>
+
+      Hapus Background
+    </button>
+
+    <div
+      id="removeBgStatus"
+      class="remove-bg-status"
+    ></div>
+
+  </div>
+
+</div>
+ 
+  <!-- LOADING SCREEN -->
+<div id="loadingScreen" class="loading-screen">
+  <div class="loading-content">
+
+    <div class="loading-logo">
+      <img src="LOGO.jpg" alt="YamadaDownloader" class="site-logo-img">
+    </div>
+
+    <div class="loading-text-wrap">
+      <div id="loadingText" class="loading-text">YAMADA</div>
+    </div>
+
+    <div class="loading-bar">
+      <span id="loadingBar"></span>
+    </div>
+
+    <div class="loading-percent" id="loadingPercent">0%</div>
+
+  </div>
+</div>
+
+  <div id="splash" class="splash">
+    <div class="splash-logo"><img src="LOGO.jpg" alt="" class="site-logo-img"></div>
+    <p id="splashName">YamadaDownloader</p>
+    <div class="loader"><span></span></div>
+  </div>
+
+  <div id="waNotice" class="wa-notice">
+   <img src="iPhone.jpg" alt="" class="wa-icon">
+    <div class="wa-copy">
+      <strong>Saluran WhatsApp</strong>
+      <span>Ikuti channel kami untuk info terbaru.</span>
+    </div>
+    <a id="waLink" href="#" target="_blank" rel="noopener">Gabung</a>
+    <button id="closeNotice" aria-label="Tutup">×</button>
+  </div>
+
+  <div class="app-shell">
+    <header class="topbar">
+  <a class="brand" href="#home" data-page="home">
+    <img src="LOGO.jpg" alt="" class="brand-logo site-logo-img">
+    <span id="brandNameText">Yamada<span>Downloader</span></span>
+  </a>
+
+  <div class="topbar-actions">
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Ganti tema">
+      <span id="themeIcon">☀️</span>
+    </button>
+    <button class="install-btn" id="installBtn" hidden>Install App</button>
+  </div>
+</header>
+
+    <main id="app">
+      <section class="page active" data-route="home">
+        <div class="hero">
+          <video autoplay muted loop playsinline preload="metadata">
+          <source src="banner.mp4" type="video/mp4">
+          </video>
+          <div class="hero-tagline">
+            <span class="hero-kicker">Yamada Performance</span>
+            <h1>DOWNLOAD<br>WITHOUT LIMITS.</h1>
+          </div>
+        </div>
+
+        <section class="status-card">
+          <div class="status-head">
+           <img src="LOGO.jpg" alt="" class="avatar site-logo-img">
+            <div class="status-head-text">
+              <strong id="statusHeadName">YamadaDownloader</strong>
+              <span>V5.0.0</span>
+            </div>
+            <span class="status-badge"><i></i> Online</span>
+          </div>
+
+          <div class="status-rows">
+            <div class="status-row">
+              <span class="status-label"><i class="status-dot"></i>Perangkat</span>
+              <span class="status-value" id="deviceType">Mendeteksi...</span>
+            </div>
+            <div class="status-row">
+              <span class="status-label"><i class="status-dot"></i>Baterai</span>
+              <span class="status-value" id="deviceBatteryStatus">Mengecek...</span>
+            </div>
+            <div class="status-row">
+              <span class="status-label"><i class="status-dot"></i>Layanan</span>
+              <span class="status-value">24/7 • Fast Download</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">TOOLS</span>
+            <h2>Tools Populer</h2>
+          </div>
+        </div>
+
+        <!-- Diisi otomatis lewat JS (renderPopularTools di app.js) berdasarkan
+             data pemakaian tools yang sebenarnya. Daftar LENGKAP semua tools
+             tetap ada di halaman "Tools" lewat menu bawah. -->
+        <div class="tool-grid" id="popularToolsGrid">
+          <button class="tool-card" data-tool="youtube">
+            <img src="Youtube.jpg" alt="" class="tool-icon">
+            <strong>YouTube</strong>
+            <small>Video & Shorts</small>
+            <span class="arrow">→</span>
+          </button>
+          <button class="tool-card" data-tool="tiktok">
+            <img src="Tiktok.jpg" alt="" class="tool-icon">
+            <strong>TikTok</strong>
+            <small>Video tanpa ribet</small>
+            <span class="arrow">→</span>
+          </button>
+          <button class="tool-card" data-tool="instagram">
+            <img src="Instagram.jpg" alt="" class="tool-icon">
+            <strong>Instagram</strong>
+            <small>Reels & video</small>
+            <span class="arrow">→</span>
+          </button>
+          <button class="tool-card" data-tool="pinterest">
+            <img src="Pinterest.jpg" alt="" class="tool-icon">
+            <strong>Pinterest</strong>
+            <small>Video & gambar</small>
+            <span class="arrow">→</span>
+          </button>
+        </div>
+
+        <section class="credits">
+          <span class="eyebrow">CREDITS</span>
+          <h2>YamadaDownloader</h2>
+          <p>Website developed by JustReyy
+            Powered by YamadaDownloader
+           .</p>
+          <div class="credit-pills">
+            <span>✦ JustReyy</span>
+            <span>✦ JustReyy</span>
+            <span>✦ JustReyy</span>
+          </div>
+        </section>
+
+        <section class="tutorial-section">
+          <span class="eyebrow">GUIDE</span>
+          <h2>Tutorial Download Video</h2>
+
+          <div class="tutorial-grid">
+            <div class="tutorial-card">
+              <span class="tutorial-logo youtube">▶</span>
+              <strong>YouTube</strong>
+              <ol>
+                <li>Salin link video atau Shorts YouTube.</li>
+                <li>Buka menu <b>YouTube</b> di beranda.</li>
+                <li>Tempel link, lalu tekan <b>Download Video</b>.</li>
+                <li>Pilih format & kualitas yang diinginkan.</li>
+              </ol>
+            </div>
+
+            <div class="tutorial-card">
+              <span class="tutorial-logo tiktok">♪</span>
+              <strong>TikTok</strong>
+              <ol>
+                <li>Buka video TikTok, tekan tombol <b>Share</b>.</li>
+                <li>Pilih <b>Salin Link</b> / Copy Link.</li>
+                <li>Tempel link di menu TikTok YamadaDownloader.</li>
+                <li>Tekan Download, lalu pilih format.</li>
+              </ol>
+            </div>
+
+            <div class="tutorial-card">
+              <span class="tutorial-logo instagram">◎</span>
+              <strong>Instagram</strong>
+              <ol>
+                <li>Buka Reels/video Instagram yang publik.</li>
+                <li>Tekan titik tiga, pilih <b>Salin Tautan</b>.</li>
+                <li>Tempel link di menu Instagram YamadaDownloader.</li>
+                <li>Tekan Download, lalu pilih format.</li>
+              </ol>
+            </div>
+          </div>
+        </section>
+
+        <section class="info-strip">
+          <div>✓ Gratis digunakan</div>
+          <div>✓ Mobile friendly</div>
+          <div>✓ Install sebagai aplikasi</div>
+        </section>
+      </section>
+
+      <section class="page" data-route="tool">
+        <button class="back-btn" data-page="home">← Kembali</button>
+        <div class="download-head">
+          <span id="toolBigIcon" class="tool-icon big">▶</span>
+          <div>
+            <span class="eyebrow">DOWNLOADER</span>
+            <h1 id="toolTitle">YouTube Downloader</h1>
+            <p id="toolDescription">Masukkan link video yang ingin kamu simpan.</p>
+          </div>
+        </div>
+
+        <div class="download-box">
+          <label for="videoUrl">URL VIDEO</label>
+          <div class="input-wrap">
+            <input id="videoUrl" type="url" inputmode="url" autocomplete="off"
+                   placeholder="https://..." aria-label="URL video">
+            <button id="pasteBtn" type="button">Paste</button>
+          </div>
+          <button id="downloadBtn" class="primary-btn" type="button">
+            <span>↓</span> Download Video
+          </button>
+          <p class="helper">Gunakan link konten publik yang kamu punya hak untuk simpan.</p>
+        </div>
+
+        <div id="resultBox" class="result-box" hidden></div>
+
+        <div class="supported">
+          <span>SUPPORTED</span>
+          <div><b>YT</b> YouTube</div>
+          <div><b>TT</b> TikTok</div>
+          <div><b>IG</b> Instagram</div>
+          <div><b>PT</b> Pinterest</div>
+        </div>
+      </section>
+
+      <section class="page" data-route="tools">
+        <div class="page-title">
+          <span class="eyebrow">TOOLS</span>
+          <h1>All Tools</h1>
+          <p>Pilih tools downloader yang kamu butuhkan.</p>
+        </div>
+
+        <div class="tool-grid">
+          <button class="tool-card" data-tool="youtube">
+            <img src="Youtube.jpg" alt="" class="tool-icon">
+            <strong>YouTube</strong>
+            <small>Video & Shorts</small>
+            <span class="arrow">→</span>
+          </button>
+          <button class="tool-card" data-tool="tiktok">
+           <img src="Tiktok.jpg" alt="" class="tool-icon">
+            <strong>TikTok</strong>
+            <small>Video tanpa ribet</small>
+            <span class="arrow">→</span>
+          </button>
+          <button class="tool-card" data-tool="instagram">
+             <img src="Instagram.jpg" alt="" class="tool-icon">
+            <strong>Instagram</strong>
+            <small>Reels & video</small>
+            <span class="arrow">→</span>
+          </button>
+          <button class="tool-card" data-tool="pinterest">
+             <img src="Pinterest.jpg" alt="" class="tool-icon">
+            <strong>Pinterest</strong>
+            <small>Video & gambar</small>
+            <span class="arrow">→</span>
+          </button>
+
+          <button class="tool-card" type="button" onclick="openRemoveBg()">
+  <span class="tool-icon"><i class="fas fa-wand-magic-sparkles"></i></span>
+  <strong>Remove BG</strong>
+  <small>Hapus background otomatis</small>
+  <span class="arrow">→</span>
+</button>
+
+<div class="tool-card tool-card-soon" aria-disabled="true">
+  <span class="tool-icon">✦</span>
+  <strong>Cooming soon</strong>
+  <small>Tools baru akan ditambahkan di sini</small>
+</div>
+
+          <div class="tool-card tool-card-soon" aria-disabled="true">
+            <span class="tool-icon">✦</span>
+            <strong>Cooming soon</strong>
+            <small>Tools baru akan ditambahkan di sini</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" data-route="support">
+        <div class="page-title">
+          <span class="eyebrow">HELP CENTER</span>
+          <h1>Customer Service</h1>
+          <p>Butuh bantuan atau ingin melaporkan link yang bermasalah?</p>
+        </div>
+        <div class="support-card">
+          <div class="support-icon">✦</div>
+          <h2>Hubungi kami</h2>
+          <p>Hubungi kami atau tanya ai yamada jika ada bug atau lainnya.</p>
+          <a class="primary-btn link-btn" id="csLink" href="#" target="_blank" rel="noopener">Buka Customer Service</a>
+        </div>
+      </section>
+
+      <section class="page" data-route="panel">
+        <div class="page-title">
+          <span class="eyebrow">RESTRICTED</span>
+          <h1>Panel Admin</h1>
+          <p>Halaman ini khusus pemilik website.</p>
+        </div>
+
+        <div id="panelLocked" class="download-box">
+          <label for="panelKeyInput">ADMIN KEY</label>
+          <div class="input-wrap">
+            <input id="panelKeyInput" type="password" autocomplete="off"
+                   placeholder="Masukkan key rahasia..." aria-label="Admin key">
+          </div>
+          <button id="panelUnlockBtn" class="primary-btn" type="button">
+            <span>🔒</span> Buka Panel
+          </button>
+          <p id="panelError" class="helper panel-error" hidden></p>
+        </div>
+
+        <div id="panelDashboard" class="panel-dashboard" hidden>
+
+          <!-- Banner -->
+          <div class="panel-hero">
+            <img id="panelHeroLogo" src="LOGO.jpg" alt="" class="panel-hero-logo site-logo-img">
+            <div class="panel-hero-text">
+              <span class="panel-hero-eyebrow">Admin Panel</span>
+              <h2 id="panelHeroName">YamadaDownloader</h2>
+              <p>Kelola semua pengaturan website dari sini.</p>
+            </div>
+          </div>
+
+          <!-- Website Setting -->
+          <div class="panel-card" data-accent="violet">
+            <div class="panel-card-head">
+              <span class="panel-card-icon">🌐</span>
+              <div>
+                <h3>Website Setting</h3>
+                <p>Ubah nama situs, deskripsi, logo, dan link Customer Service.</p>
+              </div>
+            </div>
+            <div class="panel-card-body">
+              <label class="panel-field-label" for="siteNameInput">Nama Situs</label>
+              <input id="siteNameInput" type="text" class="panel-input" maxlength="60" placeholder="YamadaDownloader">
+
+              <label class="panel-field-label" for="siteDescriptionInput">Deskripsi / Tagline</label>
+              <textarea id="siteDescriptionInput" class="panel-input panel-textarea" rows="2" maxlength="160"
+                        placeholder="Download video dari TikTok, Instagram, dan YouTube."></textarea>
+
+              <label class="panel-field-label" for="siteLogoInput">URL Logo</label>
+              <div class="panel-logo-field">
+                <img id="siteLogoPreview" class="panel-logo-preview" src="LOGO.jpg" alt="">
+                <input id="siteLogoInput" type="text" class="panel-input" maxlength="300" placeholder="LOGO.jpg atau https://...">
+              </div>
+
+              <label class="panel-field-label" for="siteCsLinkInput">Link Customer Service</label>
+              <input id="siteCsLinkInput" type="text" class="panel-input" maxlength="300" placeholder="https://wa.me/62xxxxxxxxxx">
+
+              <button id="siteSaveBtn" class="primary-btn" type="button">💾 Simpan Website Setting</button>
+              <p id="siteSaveStatus" class="helper panel-notice" hidden></p>
+            </div>
+          </div>
+
+          <!-- Tools Paling Populer -->
+          <div class="panel-card" data-accent="blue">
+            <div class="panel-card-head">
+              <span class="panel-card-icon">🔥</span>
+              <div>
+                <h3>Tools Paling Populer</h3>
+                <p>Ranking pemakaian tools berdasarkan data pengunjung asli.</p>
+              </div>
+            </div>
+            <div class="panel-card-body">
+              <div id="popularToolsList" class="popular-tools-list">
+                <p class="helper">Memuat data...</p>
+              </div>
+              <p id="panelKvNotice" class="helper panel-notice" hidden></p>
+              <button id="panelRefreshBtn" class="secondary-btn" type="button">↻ Refresh Data</button>
+            </div>
+          </div>
+
+          <!-- Maintenance Mode -->
+          <div class="panel-card" data-accent="orange">
+            <div class="panel-card-head">
+              <span class="panel-card-icon">🛠️</span>
+              <div>
+                <h3>Maintenance Mode</h3>
+                <p>Matikan sementara seluruh fitur download dengan pesan kustom.</p>
+              </div>
+            </div>
+            <div class="panel-card-body">
+              <div class="maintenance-manager-row">
+                <span class="maintenance-manager-label">Mode Maintenance</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="maintenanceToggle">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <label for="maintenanceMessageInput" class="panel-field-label">Pesan Maintenance</label>
+              <textarea id="maintenanceMessageInput" class="maintenance-message-input" rows="3" maxlength="500"
+                        placeholder="Website sedang dalam perbaikan..."></textarea>
+
+              <button id="maintenanceSaveBtn" class="primary-btn" type="button">💾 Simpan Maintenance Mode</button>
+              <p id="maintenanceSaveStatus" class="helper panel-notice" hidden></p>
+            </div>
+          </div>
+
+          <!-- Downloader Manager -->
+          <div class="panel-card" data-accent="green">
+            <div class="panel-card-head">
+              <span class="panel-card-icon">⬇️</span>
+              <div>
+                <h3>Downloader Manager</h3>
+                <p>Nyalakan/matikan downloader per platform & atur nama tampilannya.</p>
+              </div>
+            </div>
+            <div class="panel-card-body">
+              <div class="platform-manager-list">
+                <div class="platform-manager-row" data-platform-row="tiktok">
+                  <div class="platform-manager-info">
+                    <img src="Tiktok.jpg" alt="" class="platform-manager-icon">
+                    <div>
+                      <input type="text" class="platform-name-input" data-platform="tiktok" maxlength="40" placeholder="Nama platform">
+                      <div class="platform-manager-id">tiktok</div>
+                    </div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" class="platform-toggle" data-platform="tiktok" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <div class="platform-manager-row" data-platform-row="instagram">
+                  <div class="platform-manager-info">
+                    <img src="Instagram.jpg" alt="" class="platform-manager-icon">
+                    <div>
+                      <input type="text" class="platform-name-input" data-platform="instagram" maxlength="40" placeholder="Nama platform">
+                      <div class="platform-manager-id">instagram</div>
+                    </div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" class="platform-toggle" data-platform="instagram" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <div class="platform-manager-row" data-platform-row="youtube">
+                  <div class="platform-manager-info">
+                    <img src="Youtube.jpg" alt="" class="platform-manager-icon">
+                    <div>
+                      <input type="text" class="platform-name-input" data-platform="youtube" maxlength="40" placeholder="Nama platform">
+                      <div class="platform-manager-id">youtube</div>
+                    </div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" class="platform-toggle" data-platform="youtube" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <div class="platform-manager-row" data-platform-row="pinterest">
+                  <div class="platform-manager-info">
+                    <img src="Pinterest.jpg" alt="" class="platform-manager-icon">
+                    <div>
+                      <input type="text" class="platform-name-input" data-platform="pinterest" maxlength="40" placeholder="Nama platform">
+                      <div class="platform-manager-id">pinterest</div>
+                    </div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" class="platform-toggle" data-platform="pinterest" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+
+              <button id="platformSaveBtn" class="primary-btn" type="button">💾 Simpan Downloader Manager</button>
+              <p id="platformSaveStatus" class="helper panel-notice" hidden></p>
+            </div>
+          </div>
+
+          <!-- Dashboard -->
+          <div class="panel-card" data-accent="deep">
+            <div class="panel-card-head">
+              <span class="panel-card-icon">📊</span>
+              <div>
+                <h3>Dashboard</h3>
+                <p>Ringkasan statistik website secara real-time.</p>
+              </div>
+            </div>
+            <div class="panel-card-body">
+              <div class="panel-stats-grid">
+                <div class="panel-stat-card">
+                  <span class="panel-stat-label">Total Pengunjung</span>
+                  <span id="statTotalVisits" class="panel-stat-value">0</span>
+                </div>
+                <div class="panel-stat-card">
+                  <span class="panel-stat-label">Tools Dipakai</span>
+                  <span id="statToolsUsed" class="panel-stat-value">0</span>
+                </div>
+                <div class="panel-stat-card">
+                  <span class="panel-stat-label">Total Download</span>
+                  <span id="statTotalDownloads" class="panel-stat-value">0</span>
+                </div>
+                <div class="panel-stat-card">
+                  <span class="panel-stat-label">Download Hari Ini</span>
+                  <span id="statDownloadsToday" class="panel-stat-value">0</span>
+                </div>
+                <div class="panel-stat-card">
+                  <span class="panel-stat-label">API Request</span>
+                  <span id="statApiRequests" class="panel-stat-value">0</span>
+                </div>
+                <div class="panel-stat-card">
+                  <span class="panel-stat-label">Request Gagal</span>
+                  <span id="statApiFailed" class="panel-stat-value">0</span>
+                </div>
+                <div class="panel-stat-card panel-stat-card-wide">
+                  <span class="panel-stat-label">Status API</span>
+                  <span id="statApiStatus" class="panel-status-badge panel-status-unknown">● Belum ada data</span>
+                  <small id="statApiStatusTime" class="panel-stat-sub"></small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button id="panelLogoutBtn" class="back-btn panel-logout" type="button">Keluar dari Panel</button>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Navigasi utama">
+      <button class="nav-item active" data-page="home"><span>⌂</span><small>Beranda</small></button>
+      <button class="nav-item" data-page="tools"><span>▦</span><small>Tools</small></button>
+      <button class="nav-item" data-page="support"><span>●</span><small>CS</small></button>
+      <button class="nav-item" data-page="panel"><span>🛡</span><small>Panel</small></button>
+    </nav>
+  </div>
+
+   <div id="toast" class="toast" role="status"></div>
+
+  <div id="bigNotice" class="big-notice" role="status">
+    <div class="big-notice-box">
+      <div class="big-notice-icon"><i class="fas fa-circle-check"></i></div>
+      <p id="bigNoticeText">Sudah Didownload silahkan cek Chrome</p>
+    </div>
+  </div>
+
+  <div id="maintenanceOverlay" class="maintenance-overlay" hidden role="alertdialog" aria-modal="true">
+    <div class="maintenance-box">
+      <div class="maintenance-icon">🛠️</div>
+      <h2>Sedang Maintenance</h2>
+      <p id="maintenanceMessage">Website sedang dalam perbaikan. Silakan coba lagi beberapa saat lagi.</p>
+      <button id="maintenanceRetryBtn" class="primary-btn" type="button">↻ Coba Lagi</button>
+      <button id="maintenanceAdminLink" class="back-btn" type="button">Saya admin, buka Panel Login</button>
+    </div>
+  </div>
+
+ <script>
+  // Pengaman agar splash tidak pernah stuck
+  setTimeout(() => {
+    const splash = document.getElementById("splash");
+
+    if (splash) {
+      splash.classList.add("hide");
+    }
+  }, 1500);
+</script>
+
+<script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "YamadaDownloader",
+  "short_name": "Yamada",
+  "description": "Download video TikTok, Instagram, dan YouTube.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4fbff",
+  "theme_color": "#eaf6ff",
+  "orientation": "portrait-primary",
+  "icons": [
+    {"src": "/LOGO.jpg", "sizes": "any", "type": "image/jpeg", "purpose": "any maskable"}
+  ]
+}

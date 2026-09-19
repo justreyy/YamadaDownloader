@@ -1,0 +1,28 @@
+KUSTOMISASI CEPAT
+
+1. Nama website:
+   index.html -> YamadaDownloader
+
+2. WhatsApp:
+   app.js -> CONFIG.whatsappChannel
+
+3. Customer Service:
+   app.js -> CONFIG.customerService
+
+4. Banner:
+   ganti assets/banner-placeholder.svg dengan banner kamu.
+   Jika pakai JPG/PNG, ubah src heroBanner di index.html.
+
+5. Logo:
+   logo sekarang memakai assets/LOGO.jpg (gambar yang kamu upload).
+
+6. Credits:
+   edit bagian <section class="credits"> di index.html.
+
+7. Warna:
+   edit variable di paling atas style.css:
+   --bg, --primary, --primary-dark, --surface, dll.
+
+8. API:
+   Netlify -> Environment variables ->
+   DOWNLOADER_API_URL = URL instance downloader kamu.
