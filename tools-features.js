@@ -503,7 +503,7 @@ function openPdfCompress(){
   ytoolOpen("pdfCompressModal", "pdfcompress");
   if (window.pdfjsLib && !window.pdfjsLib.GlobalWorkerOptions.workerSrc){
     window.pdfjsLib.GlobalWorkerOptions.workerSrc =
-      "https://cdn.jsdelivr.net/npm/[email protected]/build/pdf.worker.min.js";
+      "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
   }
 }
 function closePdfCompress(){ ytoolClose("pdfCompressModal"); }
