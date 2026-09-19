@@ -8,7 +8,12 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="LOGO.jpg">
   <link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/tools.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer">
+<!-- Library untuk tools baru: QR Generator (qrcode), PDF Compressor (pdf.js + jsPDF) -->
+<script src="https://cdn.jsdelivr.net/npm/[email protected]/build/qrcode.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/[email protected]/build/pdf.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/[email protected]/dist/jspdf.umd.min.js" defer></script>
 <title>YamadaDownloader</title>
 <style>
   /* ============================================================
@@ -251,7 +256,396 @@
   </div>
 
 </div>
- 
+
+<!-- ===================== IMAGE COMPRESSOR ===================== -->
+<div id="imgCompressModal" class="remove-bg-modal">
+  <div class="remove-bg-box">
+    <button class="remove-bg-close" onclick="closeImgCompress()"><i class="fas fa-times"></i></button>
+    <div class="remove-bg-header">
+      <div class="remove-bg-big-icon"><i class="fas fa-file-zipper"></i></div>
+      <h2>Image Compressor</h2>
+      <p>Perkecil ukuran file gambar tanpa upload ke server</p>
+    </div>
+
+    <label class="remove-bg-upload" for="imgCompressFile">
+      <input type="file" id="imgCompressFile" accept="image/png,image/jpeg,image/webp" hidden>
+      <i class="fas fa-cloud-arrow-up"></i>
+      <strong>Pilih gambar</strong>
+      <span>PNG • JPG • WEBP</span>
+    </label>
+
+    <div class="ytool-field">
+      <label>Kualitas Kompresi</label>
+      <div class="ytool-range-row">
+        <input type="range" id="imgCompressQuality" min="10" max="100" value="70">
+        <span class="ytool-range-val" id="imgCompressQualityVal">70%</span>
+      </div>
+    </div>
+
+    <div class="ytool-field">
+      <label>Format Output</label>
+      <select class="ytool-select" id="imgCompressFormat">
+        <option value="image/jpeg">JPEG (paling kecil)</option>
+        <option value="image/webp">WEBP (kecil & tajam)</option>
+        <option value="image/png">PNG (lossless)</option>
+      </select>
+    </div>
+
+    <div id="imgCompressPreview" class="remove-bg-preview"></div>
+
+    <button id="imgCompressButton" class="remove-bg-button" onclick="processImgCompress()" style="margin-top:16px;">
+      <i class="fas fa-file-zipper"></i> Kompres Gambar
+    </button>
+
+    <div id="imgCompressStatus" class="remove-bg-status"></div>
+  </div>
+</div>
+
+<!-- ===================== IMAGE RESIZER ===================== -->
+<div id="imgResizeModal" class="remove-bg-modal">
+  <div class="remove-bg-box">
+    <button class="remove-bg-close" onclick="closeImgResize()"><i class="fas fa-times"></i></button>
+    <div class="remove-bg-header">
+      <div class="remove-bg-big-icon"><i class="fas fa-expand"></i></div>
+      <h2>Image Resizer</h2>
+      <p>Ubah ukuran (dimensi) gambar sesuai kebutuhan</p>
+    </div>
+
+    <label class="remove-bg-upload" for="imgResizeFile">
+      <input type="file" id="imgResizeFile" accept="image/png,image/jpeg,image/webp" hidden>
+      <i class="fas fa-cloud-arrow-up"></i>
+      <strong>Pilih gambar</strong>
+      <span>PNG • JPG • WEBP</span>
+    </label>
+
+    <div class="ytool-row">
+      <div class="ytool-field">
+        <label>Lebar (px)</label>
+        <input type="number" class="ytool-input" id="imgResizeWidth" min="1" placeholder="Lebar">
+      </div>
+      <div class="ytool-field">
+        <label>Tinggi (px)</label>
+        <input type="number" class="ytool-input" id="imgResizeHeight" min="1" placeholder="Tinggi">
+      </div>
+    </div>
+
+    <div class="ytool-checkbox-row">
+      <input type="checkbox" id="imgResizeLock" checked>
+      <label for="imgResizeLock" style="margin:0;text-transform:none;">Kunci rasio aspek</label>
+    </div>
+
+    <div id="imgResizePreview" class="remove-bg-preview"></div>
+
+    <button id="imgResizeButton" class="remove-bg-button" onclick="processImgResize()" style="margin-top:16px;">
+      <i class="fas fa-expand"></i> Resize Gambar
+    </button>
+
+    <div id="imgResizeStatus" class="remove-bg-status"></div>
+  </div>
+</div>
+
+<!-- ===================== VIDEO COMPRESSOR ===================== -->
+<div id="vidCompressModal" class="remove-bg-modal">
+  <div class="remove-bg-box">
+    <button class="remove-bg-close" onclick="closeVidCompress()"><i class="fas fa-times"></i></button>
+    <div class="remove-bg-header">
+      <div class="remove-bg-big-icon"><i class="fas fa-file-video"></i></div>
+      <h2>Video Compressor</h2>
+      <p>Perkecil ukuran video langsung di browser (proses lokal)</p>
+    </div>
+
+    <label class="remove-bg-upload" for="vidCompressFile">
+      <input type="file" id="vidCompressFile" accept="video/*" hidden>
+      <i class="fas fa-cloud-arrow-up"></i>
+      <strong>Pilih video</strong>
+      <span>MP4 • MOV • WEBM</span>
+    </label>
+
+    <div class="ytool-field">
+      <label>Tingkat Kompresi</label>
+      <select class="ytool-select" id="vidCompressPreset">
+        <option value="high">Kualitas Tinggi (ukuran lebih besar)</option>
+        <option value="medium" selected>Seimbang (disarankan)</option>
+        <option value="low">Ukuran Terkecil</option>
+      </select>
+    </div>
+
+    <div id="vidCompressPreview" class="remove-bg-preview"></div>
+    <div class="ytool-progress-wrap" id="vidCompressProgressWrap"><div class="ytool-progress-bar" id="vidCompressProgressBar"></div></div>
+    <p class="ytool-progress-label" id="vidCompressProgressLabel"></p>
+
+    <button id="vidCompressButton" class="remove-bg-button" onclick="processVidCompress()" style="margin-top:16px;">
+      <i class="fas fa-file-video"></i> Kompres Video
+    </button>
+
+    <div id="vidCompressStatus" class="remove-bg-status"></div>
+    <p style="margin-top:10px;font-size:10.5px;color:var(--muted);text-align:center;">
+      Pemakaian pertama agak lama karena browser mengunduh mesin pemroses video (±25MB, sekali saja).
+    </p>
+  </div>
+</div>
+
+<!-- ===================== VIDEO → MP3 ===================== -->
+<div id="vidMp3Modal" class="remove-bg-modal">
+  <div class="remove-bg-box">
+    <button class="remove-bg-close" onclick="closeVidMp3()"><i class="fas fa-times"></i></button>
+    <div class="remove-bg-header">
+      <div class="remove-bg-big-icon"><i class="fas fa-music"></i></div>
+      <h2>Video → MP3</h2>
+      <p>Ambil audio dari video jadi file MP3</p>
+    </div>
+
+    <label class="remove-bg-upload" for="vidMp3File">
+      <input type="file" id="vidMp3File" accept="video/*" hidden>
+      <i class="fas fa-cloud-arrow-up"></i>
+      <strong>Pilih video</strong>
+      <span>MP4 • MOV • WEBM</span>
+    </label>
+
+    <div class="ytool-field">
+      <label>Kualitas Audio</label>
+      <select class="ytool-select" id="vidMp3Bitrate">
+        <option value="128k">128 kbps</option>
+        <option value="192k" selected>192 kbps (disarankan)</option>
+        <option value="320k">320 kbps (terbaik)</option>
+      </select>
+    </div>
+
+    <div id="vidMp3Preview" class="remove-bg-preview"></div>
+    <div class="ytool-progress-wrap" id="vidMp3ProgressWrap"><div class="ytool-progress-bar" id="vidMp3ProgressBar"></div></div>
+    <p class="ytool-progress-label" id="vidMp3ProgressLabel"></p>
+
+    <button id="vidMp3Button" class="remove-bg-button" onclick="processVidMp3()" style="margin-top:16px;">
+      <i class="fas fa-music"></i> Ambil Audio (MP3)
+    </button>
+
+    <div id="vidMp3Status" class="remove-bg-status"></div>
+  </div>
+</div>
+
+<!-- ===================== VIDEO → GIF ===================== -->
+<div id="vidGifModal" class="remove-bg-modal">
+  <div class="remove-bg-box">
+    <button class="remove-bg-close" onclick="closeVidGif()"><i class="fas fa-times"></i></button>
+    <div class="remove-bg-header">
+      <div class="remove-bg-big-icon"><i class="fas fa-images"></i></div>
+      <h2>Video → GIF</h2>
+      <p>Ubah potongan video jadi GIF bergerak</p>
+    </div>
+
+    <label class="remove-bg-upload" for="vidGifFile">
+      <input type="file" id="vidGifFile" accept="video/*" hidden>
+      <i class="fas fa-cloud-arrow-up"></i>
+      <strong>Pilih video</strong>
+      <span>MP4 • MOV • WEBM</span>
+    </label>
+
+    <div class="ytool-row">
+      <div class="ytool-field">
+        <label>Mulai (detik)</label>
+        <input type="number" class="ytool-input" id="vidGifStart" min="0" value="0">
+      </div>
+      <div class="ytool-field">
+        <label>Durasi (detik, maks 15)</label>
+        <input type="number" class="ytool-input" id="vidGifDuration" min="1" max="15" value="5">
+      </div>
+    </div>
+    <div class="ytool-row">
+      <div class="ytool-field">
+        <label>FPS</label>
+        <select class="ytool-select" id="vidGifFps">
+          <option value="8">8 fps (ringan)</option>
+          <option value="10" selected>10 fps</option>
+          <option value="15">15 fps (halus)</option>
+        </select>
+      </div>
+      <div class="ytool-field">
+        <label>Lebar (px)</label>
+        <select class="ytool-select" id="vidGifWidth">
+          <option value="320">320px</option>
+          <option value="480" selected>480px</option>
+          <option value="640">640px</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="vidGifPreview" class="remove-bg-preview"></div>
+    <div class="ytool-progress-wrap" id="vidGifProgressWrap"><div class="ytool-progress-bar" id="vidGifProgressBar"></div></div>
+    <p class="ytool-progress-label" id="vidGifProgressLabel"></p>
+
+    <button id="vidGifButton" class="remove-bg-button" onclick="processVidGif()" style="margin-top:16px;">
+      <i class="fas fa-images"></i> Buat GIF
+    </button>
+
+    <div id="vidGifStatus" class="remove-bg-status"></div>
+  </div>
+</div>
+
+<!-- ===================== THUMBNAIL DOWNLOADER ===================== -->
+<div id="thumbModal" class="remove-bg-modal">
+  <div class="remove-bg-box">
+    <button class="remove-bg-close" onclick="closeThumb()"><i class="fas fa-times"></i></button>
+    <div class="remove-bg-header">
+      <div class="remove-bg-big-icon"><i class="fas fa-image"></i></div>
+      <h2>Thumbnail Downloader</h2>
+      <p>Download thumbnail HD dari link video YouTube</p>
+    </div>
+
+    <div class="ytool-field" style="margin-top:0;">
+      <label>URL Video YouTube</label>
+      <input type="url" class="ytool-input" id="thumbUrl" placeholder="https://www.youtube.com/watch?v=...">
+    </div>
+
+    <button id="thumbButton" class="remove-bg-button" onclick="processThumb()" style="margin-top:16px;">
+      <i class="fas fa-image"></i> Ambil Thumbnail
+    </button>
+
+    <div id="thumbPreview" class="remove-bg-preview"></div>
+    <div id="thumbStatus" class="remove-bg-status"></div>
+  </div>
+</div>
+
+<!-- ===================== QR GENERATOR ===================== -->
+<div id="qrModal" class="remove-bg-modal">
+  <div class="remove-bg-box">
+    <button class="remove-bg-close" onclick="closeQr()"><i class="fas fa-times"></i></button>
+    <div class="remove-bg-header">
+      <div class="remove-bg-big-icon"><i class="fas fa-qrcode"></i></div>
+      <h2>QR Generator</h2>
+      <p>Buat QR Code dari teks atau link</p>
+    </div>
+
+    <div class="ytool-field" style="margin-top:0;">
+      <label>Teks atau Link</label>
+      <textarea class="ytool-textarea" id="qrText" placeholder="https://... atau teks bebas"></textarea>
+    </div>
+
+    <div class="ytool-row">
+      <div class="ytool-field">
+        <label>Ukuran</label>
+        <select class="ytool-select" id="qrSize">
+          <option value="200">200 x 200</option>
+          <option value="300" selected>300 x 300</option>
+          <option value="500">500 x 500</option>
+        </select>
+      </div>
+      <div class="ytool-field">
+        <label>Warna</label>
+        <div class="ytool-color-row" style="margin-top:2px;">
+          <span class="ytool-color-item"><input type="color" id="qrFg" value="#000000"> Kode</span>
+          <span class="ytool-color-item"><input type="color" id="qrBg" value="#ffffff"> Latar</span>
+        </div>
+      </div>
+    </div>
+
+    <button id="qrButton" class="remove-bg-button" onclick="processQr()" style="margin-top:16px;">
+      <i class="fas fa-qrcode"></i> Generate QR Code
+    </button>
+
+    <div id="qrCanvasWrap" class="ytool-qr-canvas-wrap" style="display:none;"></div>
+    <div id="qrActions" style="display:none;"></div>
+    <div id="qrStatus" class="remove-bg-status"></div>
+  </div>
+</div>
+
+<!-- ===================== PHOTO ENHANCER ===================== -->
+<div id="enhanceModal" class="remove-bg-modal">
+  <div class="remove-bg-box">
+    <button class="remove-bg-close" onclick="closeEnhance()"><i class="fas fa-times"></i></button>
+    <div class="remove-bg-header">
+      <div class="remove-bg-big-icon"><i class="fas fa-sun"></i></div>
+      <h2>Photo Enhancer</h2>
+      <p>Otomatis pertajam & perbaiki warna foto</p>
+    </div>
+
+    <label class="remove-bg-upload" for="enhanceFile">
+      <input type="file" id="enhanceFile" accept="image/png,image/jpeg,image/webp" hidden>
+      <i class="fas fa-cloud-arrow-up"></i>
+      <strong>Pilih foto</strong>
+      <span>PNG • JPG • WEBP</span>
+    </label>
+
+    <button type="button" class="ytool-preset-btn" style="margin-top:14px;width:100%;" onclick="ytoolSetEnhanceDefaults()">
+      <i class="fas fa-wand-magic-sparkles"></i> Pakai Pengaturan Otomatis
+    </button>
+
+    <div class="ytool-field">
+      <label>Brightness</label>
+      <div class="ytool-range-row">
+        <input type="range" id="enhanceBrightness" min="-30" max="30" value="8">
+        <span class="ytool-range-val" id="enhanceBrightnessVal">8</span>
+      </div>
+    </div>
+    <div class="ytool-field">
+      <label>Contrast</label>
+      <div class="ytool-range-row">
+        <input type="range" id="enhanceContrast" min="-30" max="30" value="14">
+        <span class="ytool-range-val" id="enhanceContrastVal">14</span>
+      </div>
+    </div>
+    <div class="ytool-field">
+      <label>Saturation</label>
+      <div class="ytool-range-row">
+        <input type="range" id="enhanceSaturation" min="-30" max="30" value="18">
+        <span class="ytool-range-val" id="enhanceSaturationVal">18</span>
+      </div>
+    </div>
+    <div class="ytool-field">
+      <label>Ketajaman (Sharpen)</label>
+      <div class="ytool-range-row">
+        <input type="range" id="enhanceSharpen" min="0" max="100" value="40">
+        <span class="ytool-range-val" id="enhanceSharpenVal">40%</span>
+      </div>
+    </div>
+
+    <div id="enhancePreview" class="remove-bg-preview"></div>
+
+    <button id="enhanceButton" class="remove-bg-button" onclick="processEnhance()" style="margin-top:16px;">
+      <i class="fas fa-sun"></i> Terapkan & Enhance
+    </button>
+
+    <div id="enhanceStatus" class="remove-bg-status"></div>
+  </div>
+</div>
+
+<!-- ===================== PDF COMPRESSOR ===================== -->
+<div id="pdfCompressModal" class="remove-bg-modal">
+  <div class="remove-bg-box">
+    <button class="remove-bg-close" onclick="closePdfCompress()"><i class="fas fa-times"></i></button>
+    <div class="remove-bg-header">
+      <div class="remove-bg-big-icon"><i class="fas fa-file-pdf"></i></div>
+      <h2>PDF Compressor</h2>
+      <p>Perkecil ukuran file PDF langsung di browser</p>
+    </div>
+
+    <label class="remove-bg-upload" for="pdfCompressFile">
+      <input type="file" id="pdfCompressFile" accept="application/pdf" hidden>
+      <i class="fas fa-cloud-arrow-up"></i>
+      <strong>Pilih file PDF</strong>
+      <span>PDF</span>
+    </label>
+
+    <div class="ytool-field">
+      <label>Tingkat Kompresi</label>
+      <select class="ytool-select" id="pdfCompressLevel">
+        <option value="low">Ringan (kualitas terbaik)</option>
+        <option value="medium" selected>Sedang (disarankan)</option>
+        <option value="high">Maksimal (ukuran terkecil)</option>
+      </select>
+    </div>
+
+    <div id="pdfCompressPreview" class="remove-bg-preview"></div>
+    <div class="ytool-progress-wrap" id="pdfCompressProgressWrap"><div class="ytool-progress-bar" id="pdfCompressProgressBar"></div></div>
+    <p class="ytool-progress-label" id="pdfCompressProgressLabel"></p>
+
+    <button id="pdfCompressButton" class="remove-bg-button" onclick="processPdfCompress()" style="margin-top:16px;">
+      <i class="fas fa-file-pdf"></i> Kompres PDF
+    </button>
+
+    <div id="pdfCompressStatus" class="remove-bg-status"></div>
+  </div>
+</div>
+
   <!-- LOADING SCREEN -->
 <div id="loadingScreen" class="loading-screen">
   <div class="loading-content">
@@ -514,17 +908,68 @@
   <span class="arrow">→</span>
 </button>
 
-<div class="tool-card tool-card-soon" aria-disabled="true">
-  <span class="tool-icon">✦</span>
-  <strong>Cooming soon</strong>
-  <small>Tools baru akan ditambahkan di sini</small>
-</div>
+<button class="tool-card" type="button" onclick="openImgCompress()">
+  <span class="tool-icon"><i class="fas fa-file-zipper"></i></span>
+  <strong>Image Compressor</strong>
+  <small>Perkecil ukuran gambar</small>
+  <span class="arrow">→</span>
+</button>
 
-          <div class="tool-card tool-card-soon" aria-disabled="true">
-            <span class="tool-icon">✦</span>
-            <strong>Cooming soon</strong>
-            <small>Tools baru akan ditambahkan di sini</small>
-          </div>
+<button class="tool-card" type="button" onclick="openImgResize()">
+  <span class="tool-icon"><i class="fas fa-expand"></i></span>
+  <strong>Image Resizer</strong>
+  <small>Ubah dimensi gambar</small>
+  <span class="arrow">→</span>
+</button>
+
+<button class="tool-card" type="button" onclick="openVidCompress()">
+  <span class="tool-icon"><i class="fas fa-file-video"></i></span>
+  <strong>Video Compressor</strong>
+  <small>Perkecil ukuran video</small>
+  <span class="arrow">→</span>
+</button>
+
+<button class="tool-card" type="button" onclick="openVidMp3()">
+  <span class="tool-icon"><i class="fas fa-music"></i></span>
+  <strong>Video → MP3</strong>
+  <small>Ambil audio dari video</small>
+  <span class="arrow">→</span>
+</button>
+
+<button class="tool-card" type="button" onclick="openVidGif()">
+  <span class="tool-icon"><i class="fas fa-images"></i></span>
+  <strong>Video → GIF</strong>
+  <small>Ubah video jadi GIF</small>
+  <span class="arrow">→</span>
+</button>
+
+<button class="tool-card" type="button" onclick="openThumb()">
+  <span class="tool-icon"><i class="fas fa-image"></i></span>
+  <strong>Thumbnail Downloader</strong>
+  <small>Download thumbnail YouTube</small>
+  <span class="arrow">→</span>
+</button>
+
+<button class="tool-card" type="button" onclick="openQr()">
+  <span class="tool-icon"><i class="fas fa-qrcode"></i></span>
+  <strong>QR Generator</strong>
+  <small>Buat QR dari teks/link</small>
+  <span class="arrow">→</span>
+</button>
+
+<button class="tool-card" type="button" onclick="openEnhance()">
+  <span class="tool-icon"><i class="fas fa-sun"></i></span>
+  <strong>Photo Enhancer</strong>
+  <small>Pertajam & perbaiki foto</small>
+  <span class="arrow">→</span>
+</button>
+
+<button class="tool-card" type="button" onclick="openPdfCompress()">
+  <span class="tool-icon"><i class="fas fa-file-pdf"></i></span>
+  <strong>PDF Compressor</strong>
+  <small>Perkecil ukuran file PDF</small>
+  <span class="arrow">→</span>
+</button>
         </div>
       </section>
 
@@ -810,5 +1255,9 @@
 </script>
 
 <script src="/app.js"></script>
+<!-- Fitur tools baru: Image Compressor/Resizer, Thumbnail Downloader, QR Generator, Photo Enhancer, PDF Compressor -->
+<script src="/tools-features.js" defer></script>
+<!-- Fitur berbasis video (ffmpeg.wasm, jalan di browser): Video Compressor, Video→MP3, Video→GIF -->
+<script type="module" src="/tools-video.js"></script>
 </body>
 </html>
