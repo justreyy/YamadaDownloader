@@ -10,10 +10,10 @@
 // tanpa build step (lihat tag <script type="module"> di index.html).
 // ========================================================
 
-import { FFmpeg } from "https://cdn.jsdelivr.net/npm/@ffmpeg/[email protected]/dist/esm/index.js";
-import { fetchFile, toBlobURL } from "https://cdn.jsdelivr.net/npm/@ffmpeg/[email protected]/dist/esm/index.js";
+import { FFmpeg } from "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js";
+import { fetchFile, toBlobURL } from "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js";
 
-const FFMPEG_CORE_BASE = "https://cdn.jsdelivr.net/npm/@ffmpeg/[email protected]/dist/esm";
+const FFMPEG_CORE_BASE = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm";
 
 let ffmpegInstance = null;
 let ffmpegLoadingPromise = null;
