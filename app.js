@@ -126,19 +126,44 @@ const HOME_TOOL_CATALOG = [
   { id: "tiktok",    title: "TikTok",    desc: "Video tanpa ribet",          icon: "Tiktok.jpg" },
   { id: "instagram", title: "Instagram", desc: "Reels & video",              icon: "Instagram.jpg" },
   { id: "pinterest", title: "Pinterest", desc: "Video & gambar",             icon: "Pinterest.jpg" },
-  { id: "removebg",  title: "Remove BG", desc: "Hapus background otomatis",  iconClass: "fas fa-wand-magic-sparkles" }
+  { id: "removebg",     title: "Remove BG",             desc: "Hapus background otomatis",  iconClass: "fas fa-wand-magic-sparkles" },
+  { id: "imgcompress",  title: "Image Compressor",      desc: "Perkecil ukuran gambar",      iconClass: "fas fa-file-zipper" },
+  { id: "imgresize",    title: "Image Resizer",         desc: "Ubah dimensi gambar",         iconClass: "fas fa-expand" },
+  { id: "vidcompress",  title: "Video Compressor",      desc: "Perkecil ukuran video",        iconClass: "fas fa-file-video" },
+  { id: "vidmp3",       title: "Video → MP3",           desc: "Ambil audio dari video",       iconClass: "fas fa-music" },
+  { id: "vidgif",       title: "Video → GIF",           desc: "Ubah video jadi GIF",          iconClass: "fas fa-images" },
+  { id: "thumbnail",    title: "Thumbnail Downloader",  desc: "Download thumbnail YouTube",   iconClass: "fas fa-image" },
+  { id: "qrgenerator",  title: "QR Generator",          desc: "Buat QR dari teks/link",       iconClass: "fas fa-qrcode" },
+  { id: "photoenhance", title: "Photo Enhancer",        desc: "Pertajam & perbaiki foto",     iconClass: "fas fa-sun" },
+  { id: "pdfcompress",  title: "PDF Compressor",        desc: "Perkecil ukuran file PDF",     iconClass: "fas fa-file-pdf" }
 ];
 
 // Berapa banyak tool yang ditampilkan di beranda.
 const HOME_POPULAR_LIMIT = 4;
+
+// Tool non-downloader (modal) yang punya fungsi openXxx() sendiri, dipakai
+// biar toolCardHTML() gak perlu di-edit lagi tiap nambah tool baru.
+const HOME_TOOL_OPEN_FN = {
+  removebg: "openRemoveBg",
+  imgcompress: "openImgCompress",
+  imgresize: "openImgResize",
+  vidcompress: "openVidCompress",
+  vidmp3: "openVidMp3",
+  vidgif: "openVidGif",
+  thumbnail: "openThumb",
+  qrgenerator: "openQr",
+  photoenhance: "openEnhance",
+  pdfcompress: "openPdfCompress"
+};
 
 function toolCardHTML(tool){
   const iconHTML = tool.iconClass
     ? `<span class="tool-icon"><i class="${tool.iconClass}"></i></span>`
     : `<img src="${tool.icon}" alt="" class="tool-icon">`;
 
-  const clickAttr = tool.id === "removebg"
-    ? `type="button" onclick="openRemoveBg()"`
+  const openFn = HOME_TOOL_OPEN_FN[tool.id];
+  const clickAttr = openFn
+    ? `type="button" onclick="${openFn}()"`
     : `data-tool="${tool.id}"`;
 
   const disabledAttrs = tool.disabled
