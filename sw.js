@@ -1,6 +1,14 @@
-self.options = {
-    "domain": "3nbf4.com",
-    "zoneId": 11684255
-}
-self.lary = ""
-importScripts('https://3nbf4.com/act/files/service-worker.min.js?r=sw')
+// Service worker minimal — cuma buat memenuhi syarat "installable PWA".
+// Tidak ada tracking, iklan, atau push notification pihak ketiga.
+self.addEventListener("install", (event) => {
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  self.clients.claim();
+});
+
+self.addEventListener("fetch", (event) => {
+  // Pass-through biasa, tidak melakukan caching khusus.
+  event.respondWith(fetch(event.request));
+});
