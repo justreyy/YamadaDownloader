@@ -1,0 +1,123 @@
+/* ============================================================
+   YAMADA TOOLS — CSS tambahan untuk 9 fitur baru:
+   Image Compressor, Image Resizer, Video Compressor, Video->MP3,
+   Video->GIF, Thumbnail Downloader, QR Generator, Photo Enhancer,
+   PDF Compressor.
+
+   Semua modal tools baru memakai class dasar yang SAMA dengan
+   modal "Remove Background" yang sudah ada (.remove-bg-modal,
+   .remove-bg-box, .remove-bg-close, dst — lihat style.css),
+   supaya tampilan konsisten & gak duplikat CSS. File ini cuma
+   nambahin komponen yang belum ada: field/label, slider, tombol
+   preset, progress bar, grid thumbnail, dan info ukuran file.
+   ============================================================ */
+
+.ytool-field{ margin-top:16px; text-align:left; }
+.ytool-field label{
+  display:block; font-size:11.5px; font-weight:800; color:var(--muted);
+  letter-spacing:.03em; margin-bottom:6px; text-transform:uppercase;
+}
+.ytool-input,
+.ytool-select,
+.ytool-textarea{
+  width:100%; border:1px solid var(--line); background:var(--surface2);
+  color:var(--text); border-radius:12px; padding:11px 13px; font-size:13.5px;
+  font-family:inherit;
+}
+.ytool-textarea{ resize:vertical; min-height:70px; }
+.ytool-row{ display:flex; gap:10px; }
+.ytool-row .ytool-field{ flex:1; margin-top:16px; }
+
+.ytool-range-row{ display:flex; align-items:center; gap:10px; }
+.ytool-range-row input[type="range"]{ flex:1; accent-color:var(--primary); }
+.ytool-range-val{
+  min-width:44px; text-align:center; font-weight:800; font-size:12.5px;
+  color:var(--primary); background:var(--surface2); border:1px solid var(--line);
+  border-radius:8px; padding:3px 6px;
+}
+
+.ytool-preset-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.ytool-preset-btn{
+  flex:1; min-width:88px; border:1px solid var(--line); background:var(--surface2);
+  color:var(--text); border-radius:12px; padding:10px 8px; font-size:12px;
+  font-weight:800; cursor:pointer; transition:.2s;
+}
+.ytool-preset-btn.active,
+.ytool-preset-btn:hover{ border-color:var(--primary); color:var(--primary); }
+
+.ytool-checkbox-row{
+  display:flex; align-items:center; gap:8px; margin-top:14px; font-size:12.5px;
+  color:var(--muted);
+}
+.ytool-checkbox-row input{ width:16px; height:16px; accent-color:var(--primary); }
+
+.ytool-color-row{ display:flex; gap:14px; align-items:center; }
+.ytool-color-item{ display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--muted); }
+.ytool-color-item input[type="color"]{
+  width:34px; height:34px; border-radius:8px; border:1px solid var(--line);
+  background:none; padding:0; cursor:pointer;
+}
+
+.ytool-progress-wrap{
+  margin-top:16px; height:8px; border-radius:99px; background:var(--surface2);
+  border:1px solid var(--line); overflow:hidden; display:none;
+}
+.ytool-progress-wrap.active{ display:block; }
+.ytool-progress-bar{
+  height:100%; width:0%; background:var(--primary); transition:width .2s ease;
+}
+.ytool-progress-label{
+  margin-top:6px; font-size:11px; color:var(--muted); text-align:center; display:none;
+}
+.ytool-progress-label.active{ display:block; }
+
+.ytool-size-compare{
+  display:flex; justify-content:center; gap:10px; margin-top:14px; flex-wrap:wrap;
+}
+.ytool-size-chip{
+  border:1px solid var(--line); background:var(--surface2); border-radius:99px;
+  padding:6px 14px; font-size:11.5px; color:var(--muted);
+}
+.ytool-size-chip b{ color:var(--text); }
+.ytool-size-chip.save{ border-color:var(--success); color:var(--success); }
+
+.ytool-thumb-grid{
+  display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px;
+}
+.ytool-thumb-card{
+  border:1px solid var(--line); background:var(--surface2); border-radius:14px;
+  padding:10px; text-align:center;
+}
+.ytool-thumb-card img{
+  width:100%; height:80px; object-fit:cover; border-radius:8px; margin-bottom:8px;
+  background:var(--surface);
+}
+.ytool-thumb-card span{ display:block; font-size:10.5px; color:var(--muted); margin-bottom:8px; }
+.ytool-thumb-card a{
+  display:block; text-decoration:none; font-size:11px; font-weight:800;
+  color:var(--bg); background:var(--primary); border-radius:8px; padding:7px 0;
+}
+
+.ytool-qr-canvas-wrap{
+  margin-top:18px; display:flex; align-items:center; justify-content:center;
+  padding:18px; border-radius:16px; background:#fff; min-height:120px;
+}
+.ytool-qr-canvas-wrap canvas{ max-width:100%; }
+
+.ytool-preview-pair{ display:flex; gap:10px; margin-top:16px; }
+.ytool-preview-pair > div{ flex:1; text-align:center; }
+.ytool-preview-pair img,
+.ytool-preview-pair video{
+  width:100%; max-height:180px; object-fit:contain; border-radius:12px;
+  background:var(--surface2); border:1px solid var(--line);
+}
+.ytool-preview-pair small{ display:block; margin-top:6px; color:var(--muted); font-size:10.5px; }
+
+.remove-bg-preview audio{ width:100%; margin-top:8px; }
+.remove-bg-preview video{ max-width:100%; max-height:260px; border-radius:14px; }
+
+@media(max-width:420px){
+  .ytool-row{ flex-direction:column; gap:0; }
+  .ytool-thumb-grid{ grid-template-columns:1fr; }
+  .ytool-preview-pair{ flex-direction:column; }
+}
