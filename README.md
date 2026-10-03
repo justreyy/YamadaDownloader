@@ -1,57 +1,57 @@
 # YamadaDownloader
 
-Template website downloader dengan desain putih + biru muda, splash/loading, banner, credits, notifikasi WhatsApp 5 detik, bottom navigation, PWA/install app, dan Netlify Function.
+Template website downloader dengan desain putih + biru muda, splash/loading, banner, credits, notifikasi WhatsApp 5 detik, bottom navigation, PWA/install app, dan Vercel Functions (folder `api/`).
 
 ## Struktur
 
 - `index.html` — tampilan utama
 - `style.css` — desain
 - `app.js` — navigasi, UI downloader, PWA
-- `api/download.mjs` — proxy aman ke API downloader
-- `assets/banner-placeholder.svg` — ganti dengan banner sendiri
-- `assets/logo.svg` — ganti dengan logo sendiri
+- `api/` — Vercel Functions (download, proxy file, panel admin, statistik, remove.bg)
+- `tools-features.js` / `tools-video.js` — tools yang jalan di browser (kompres, resize, QR, PDF, video)
+- `ffmpeg-worker.js` — worker pendamping untuk ffmpeg.wasm (jangan dihapus)
+- `banner.mp4`, `LOGO.jpg`, `*.jpg` — banner, logo, dan ikon platform
+- `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` — ikon PWA
 - `manifest.webmanifest` + `sw.js` — supaya bisa di-install sebagai PWA
-- `netlify.toml` — konfigurasi Netlify
+- `.env.example` — daftar Environment Variables yang dibutuhkan
 
 ## Jalankan di VS Code
 
 1. Install Node.js LTS.
 2. Buka folder ini di VS Code.
 3. Untuk preview cepat, pakai Live Server atau jalankan server lokal.
-4. Untuk mengetes Netlify Function secara lokal, install Netlify CLI lalu jalankan `netlify dev`.
+4. Untuk mengetes folder `api/` secara lokal, install Vercel CLI (`npm i -g vercel`) lalu jalankan `vercel dev`.
 
 ## Konfigurasi yang perlu kamu ubah
 
-Buka `app.js` dan ubah:
+Buka `app.js` dan ubah `CONFIG.whatsappChannel`.
 
-- `whatsappChannel`
-- `customerService`
+Nomor Customer Service default ada di DUA tempat yang harus sama:
+`DEFAULT_SITE_SETTINGS.csLink` di `app.js` dan `DEFAULT_SITE.csLink` di `api/_lib/settings.mjs`.
+Setelah itu nomor bisa diubah dari Panel Admin > Website Setting.
 
-Untuk banner/logo, ganti:
-
-- `assets/banner-placeholder.svg`
-- `assets/logo.svg`
-
-Kalau ingin pakai PNG/JPG, ubah path `src` di `index.html`.
+Untuk banner/logo, ganti file `banner.mp4` dan `LOGO.jpg` (atau isi URL logo di Panel Admin).
 
 ## Downloader API
 
-Frontend tidak bisa mengubah link TikTok/Instagram/YouTube menjadi file hanya dengan HTML/CSS/JS. Proyek ini memakai Netlify Function sebagai server-side proxy.
+Frontend tidak bisa mengubah link TikTok/Instagram/YouTube menjadi file hanya dengan HTML/CSS/JS. Proyek ini memakai Vercel Functions (`api/download.mjs`) sebagai server-side proxy ke API downloader (bawaan: Nexray).
 
-Set environment variable di Netlify:
+Environment Variables (lengkapnya di `.env.example`):
 
-`DOWNLOADER_API_URL=https://alamat-api-downloader-kamu/`
+- `DOWNLOADER_API_URL` / `PINTEREST_API_URL` — opsional, untuk ganti API downloader.
+- `ADMIN_PANEL_KEY` — WAJIB untuk Panel Admin.
+- `KV_REST_API_URL` + `KV_REST_API_TOKEN` — WAJIB agar pengaturan & statistik tersimpan.
+- `REMOVE_BG_API_KEY` — WAJIB untuk fitur Remove Background.
 
-Jangan menaruh API key rahasia di JavaScript frontend. Netlify mendukung environment variable untuk Functions.
-
-Untuk implementasi open-source yang kompatibel dengan request function ini, kamu bisa menjalankan instance Cobalt sendiri. Dokumentasi API Cobalt menjelaskan endpoint `POST /` dan response `redirect`, `tunnel`, atau `picker`.
+Jangan menaruh API key rahasia di JavaScript frontend maupun di kode `api/`; selalu lewat Environment Variables.
 
 Catatan: gunakan hanya konten yang memang boleh kamu unduh dan ikuti Terms of Service platform terkait.
 
 ## Panel Admin
 
 Buka menu **Panel** di navigasi bawah, masukkan `ADMIN_PANEL_KEY` (env
-variable di Vercel, default `reygantenganakmamah` kalau belum diisi).
+variable di Vercel). Tidak ada key bawaan: kalau belum diisi, panel admin nonaktif.
+Percobaan login dibatasi 8x per 15 menit per IP (butuh Vercel KV).
 
 Fitur yang tersedia (urut dari atas ke bawah di Panel Admin):
 
@@ -78,17 +78,13 @@ Semua pengaturan ini disimpan di Vercel KV (lihat `.env.example`). Kalau KV
 belum disetup, semua kartu di atas tetap tampil tapi perubahan tidak akan
 tersimpan permanen.
 
-## Deploy ke Netlify
+## Deploy ke Vercel
 
-### Cara paling mudah
-
-1. Login ke Netlify.
-2. Add new project / import project.
-3. Upload folder project atau hubungkan repository Git.
-4. Publish directory: `.`
-5. Functions directory sudah diatur oleh `netlify.toml` menjadi `netlify/functions`.
-6. Tambahkan `DOWNLOADER_API_URL` di Project configuration > Environment variables.
-7. Deploy ulang setelah mengubah environment variable.
+1. Login ke Vercel > Add New Project > import repository Git (atau upload folder).
+2. Framework Preset: **Other**. Build command & output directory dikosongkan (situs statis + folder `api/`).
+3. Storage > Create Database > KV (Upstash), hubungkan ke project.
+4. Isi Environment Variables sesuai `.env.example`.
+5. Deploy ulang setiap kali Environment Variables diubah.
 
 ## Install sebagai aplikasi
 
@@ -98,4 +94,4 @@ Kalau target akhirnya APK Android, project ini bisa dibungkus lagi menggunakan C
 
 ## Penting
 
-API downloader adalah bagian terpisah dari hosting frontend Netlify. Netlify cocok untuk website dan Function, tetapi mesin downloader yang memproses media sebaiknya dijalankan di server/container yang memang mendukung proses tersebut.
+API downloader adalah layanan terpisah dari hosting frontend. Vercel cocok untuk website dan Functions, tetapi mesin downloader yang memproses media sebaiknya dijalankan di server/container yang memang mendukung proses tersebut.
