@@ -25,7 +25,7 @@ export const DEFAULT_SITE = {
   name: "YamadaDownloader",
   description: "YamadaDownloader - download video dari TikTok, Instagram, dan YouTube.",
   logoUrl: "LOGO.jpg",
-  csLink: "https://wa.me/6283869485575"
+  csLink: "https://wa.me/6283196943411"
 };
 
 const PLATFORMS_KEY = "settings:platforms";
@@ -48,6 +48,19 @@ function sanitizeSiteField(value, fallback, maxLength) {
   const clean = String(value ?? "").trim().slice(0, maxLength);
   return clean || fallback;
 }
+
+// Field URL (logo & link CS): hanya boleh http(s):// atau path relatif.
+// Skema lain (javascript:, data:, dll) ditolak supaya tidak bisa dipakai XSS.
+function sanitizeUrlField(value, fallback, maxLength) {
+  const clean = String(value ?? "").trim().slice(0, maxLength);
+  if (!clean) return fallback;
+  if (clean.startsWith("//")) return fallback;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(clean) && !/^https?:\/\//i.test(clean)) return fallback;
+  return clean;
+}
+
+// Hasil kvCommand: null = gagal (KV down / token salah), selain itu sukses.
+const isOk = (r) => Boolean(r) && (r.result === "OK" || typeof r.result === "number");
 
 export async function getPlatformSettings() {
   if (!isKvConfigured()) return structuredClone(DEFAULT_PLATFORMS);
@@ -92,8 +105,8 @@ export async function savePlatformSettings(updates) {
     jobs.push(kvHSet(PLATFORMS_KEY, id, JSON.stringify(next)));
   }
 
-  await Promise.all(jobs);
-  return true;
+  const results = await Promise.all(jobs);
+  return results.every(isOk);
 }
 
 export async function isPlatformEnabled(id) {
@@ -121,8 +134,7 @@ export async function saveMaintenanceSettings(update) {
     message: update.message !== undefined ? sanitizeMessage(update.message) : current.message
   };
 
-  await kvSetJSON(MAINTENANCE_KEY, next);
-  return true;
+  return isOk(await kvSetJSON(MAINTENANCE_KEY, next));
 }
 
 export async function getSiteSettings() {
@@ -132,8 +144,8 @@ export async function getSiteSettings() {
   return {
     name: sanitizeSiteField(saved.name, DEFAULT_SITE.name, 60),
     description: sanitizeSiteField(saved.description, DEFAULT_SITE.description, 160),
-    logoUrl: sanitizeSiteField(saved.logoUrl, DEFAULT_SITE.logoUrl, 300),
-    csLink: sanitizeSiteField(saved.csLink, DEFAULT_SITE.csLink, 300)
+    logoUrl: sanitizeUrlField(saved.logoUrl, DEFAULT_SITE.logoUrl, 300),
+    csLink: sanitizeUrlField(saved.csLink, DEFAULT_SITE.csLink, 300)
   };
 }
 
@@ -148,10 +160,9 @@ export async function saveSiteSettings(update) {
         ? sanitizeSiteField(update.description, DEFAULT_SITE.description, 160)
         : current.description,
     logoUrl:
-      update.logoUrl !== undefined ? sanitizeSiteField(update.logoUrl, DEFAULT_SITE.logoUrl, 300) : current.logoUrl,
-    csLink: update.csLink !== undefined ? sanitizeSiteField(update.csLink, DEFAULT_SITE.csLink, 300) : current.csLink
+      update.logoUrl !== undefined ? sanitizeUrlField(update.logoUrl, DEFAULT_SITE.logoUrl, 300) : current.logoUrl,
+    csLink: update.csLink !== undefined ? sanitizeUrlField(update.csLink, DEFAULT_SITE.csLink, 300) : current.csLink
   };
 
-  await kvSetJSON(SITE_KEY, next);
-  return true;
+  return isOk(await kvSetJSON(SITE_KEY, next));
 }
