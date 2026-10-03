@@ -10,31 +10,70 @@
 // tanpa build step (lihat tag <script type="module"> di index.html).
 // ========================================================
 
-import { FFmpeg } from "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js";
-import { fetchFile, toBlobURL } from "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js";
+(function(){
+"use strict";
 
+// Dimuat sebagai script biasa (bukan type="module") dan library ffmpeg baru
+// diunduh saat tool video benar-benar dipakai. Dengan begitu fungsi
+// openVidCompress() dkk SELALU tersedia, dan kalau CDN sedang bermasalah,
+// yang gagal cuma proses videonya (dengan pesan error), bukan seluruh tombol.
+
+const FFMPEG_ESM = "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js";
+const FFMPEG_UTIL_ESM = "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js";
 const FFMPEG_CORE_BASE = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm";
 
+let ffmpegLib = null;
 let ffmpegInstance = null;
 let ffmpegLoadingPromise = null;
+
+async function loadFfmpegLib(){
+  if (!ffmpegLib){
+    const [ffmpegMod, utilMod] = await Promise.all([import(FFMPEG_ESM), import(FFMPEG_UTIL_ESM)]);
+    ffmpegLib = {
+      FFmpeg: ffmpegMod.FFmpeg,
+      fetchFile: utilMod.fetchFile,
+      toBlobURL: utilMod.toBlobURL
+    };
+  }
+  return ffmpegLib;
+}
 
 async function getFFmpeg(onProgressLabel){
   if (ffmpegInstance) return ffmpegInstance;
   if (ffmpegLoadingPromise) return ffmpegLoadingPromise;
 
   ffmpegLoadingPromise = (async () => {
-    const ffmpeg = new FFmpeg();
     if (onProgressLabel) onProgressLabel("Mengunduh mesin video (sekali saja)...");
+    const { FFmpeg, toBlobURL } = await loadFfmpegLib();
+    const ffmpeg = new FFmpeg();
+
     const [coreURL, wasmURL] = await Promise.all([
       toBlobURL(`${FFMPEG_CORE_BASE}/ffmpeg-core.js`, "text/javascript"),
       toBlobURL(`${FFMPEG_CORE_BASE}/ffmpeg-core.wasm`, "application/wasm")
     ]);
-    await ffmpeg.load({ coreURL, wasmURL });
+
+    // Browser menolak Worker yang skripnya berasal dari domain lain (CDN).
+    // /ffmpeg-worker.js adalah file satu-origin yang hanya meng-import worker
+    // asli dari CDN, jadi Worker boleh dibuat. Path harus URL absolut karena
+    // library meresolve-nya relatif terhadap alamat CDN.
+    await ffmpeg.load({
+      coreURL,
+      wasmURL,
+      classWorkerURL: `${location.origin}/ffmpeg-worker.js`
+    });
+
     ffmpegInstance = ffmpeg;
     return ffmpeg;
   })();
 
-  return ffmpegLoadingPromise;
+  try {
+    return await ffmpegLoadingPromise;
+  } catch (error) {
+    // Reset supaya percobaan berikutnya mencoba lagi (dulu promise gagal
+    // tersimpan selamanya sampai halaman di-refresh).
+    ffmpegLoadingPromise = null;
+    throw error;
+  }
 }
 
 function ytoolFormatBytes(bytes){
@@ -114,7 +153,7 @@ async function processVidCompress(){
     const cleanup = setupProgress(ffmpeg, progressBar, progressLabel);
 
     status.textContent = "Mengompres video...";
-    await ffmpeg.writeFile("input.mp4", await fetchFile(vidCompressFile));
+    await ffmpeg.writeFile("input.mp4", await ffmpegLib.fetchFile(vidCompressFile));
     await ffmpeg.exec([
       "-i", "input.mp4",
       "-vcodec", "libx264", "-crf", crf, "-preset", "veryfast",
@@ -124,7 +163,7 @@ async function processVidCompress(){
     const data = await ffmpeg.readFile("output.mp4");
     cleanup();
 
-    const blob = new Blob([data.buffer], { type: "video/mp4" });
+    const blob = new Blob([data], { type: "video/mp4" });
     const url = URL.createObjectURL(blob);
     const saved = vidCompressFile.size > 0
       ? Math.round((1 - blob.size / vidCompressFile.size) * 100)
@@ -203,7 +242,7 @@ async function processVidMp3(){
     const cleanup = setupProgress(ffmpeg, progressBar, progressLabel);
 
     status.textContent = "Mengambil audio...";
-    await ffmpeg.writeFile("input.mp4", await fetchFile(vidMp3File));
+    await ffmpeg.writeFile("input.mp4", await ffmpegLib.fetchFile(vidMp3File));
     await ffmpeg.exec([
       "-i", "input.mp4", "-vn",
       "-acodec", "libmp3lame", "-b:a", bitrate,
@@ -212,7 +251,7 @@ async function processVidMp3(){
     const data = await ffmpeg.readFile("output.mp3");
     cleanup();
 
-    const blob = new Blob([data.buffer], { type: "audio/mpeg" });
+    const blob = new Blob([data], { type: "audio/mpeg" });
     const url = URL.createObjectURL(blob);
 
     status.textContent = "Audio berhasil diambil!";
@@ -289,7 +328,7 @@ async function processVidGif(){
     const cleanup = setupProgress(ffmpeg, progressBar, progressLabel);
 
     status.textContent = "Membuat GIF...";
-    await ffmpeg.writeFile("input.mp4", await fetchFile(vidGifFile));
+    await ffmpeg.writeFile("input.mp4", await ffmpegLib.fetchFile(vidGifFile));
 
     const filter = `fps=${fps},scale=${width}:-1:flags=lanczos`;
     await ffmpeg.exec([
@@ -300,7 +339,7 @@ async function processVidGif(){
     const data = await ffmpeg.readFile("output.gif");
     cleanup();
 
-    const blob = new Blob([data.buffer], { type: "image/gif" });
+    const blob = new Blob([data], { type: "image/gif" });
     const url = URL.createObjectURL(blob);
 
     status.textContent = "GIF berhasil dibuat!";
@@ -326,11 +365,12 @@ async function processVidGif(){
   }
 }
 
-// Modul ES tidak otomatis expose function-nya ke global scope, padahal
-// tombol di index.html manggil lewat onclick="..." (sama kayak pola
-// openRemoveBg() yang sudah ada). Jadi di-expose manual ke window di sini.
+// Tombol di index.html memanggil lewat onclick="...", jadi fungsi di-expose
+// ke window (script ini dibungkus IIFE supaya tidak bentrok nama dengan script lain).
 Object.assign(window, {
   openVidCompress, closeVidCompress, processVidCompress,
   openVidMp3, closeVidMp3, processVidMp3,
   openVidGif, closeVidGif, processVidGif
 });
+
+})();
