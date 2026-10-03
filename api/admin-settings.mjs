@@ -63,6 +63,8 @@ export default async function handler(request) {
     );
   }
 
+  let saved = true;
+
   if (body?.platforms && typeof body.platforms === "object") {
     const cleanUpdates = {};
     for (const id of Object.keys(DEFAULT_PLATFORMS)) {
@@ -70,15 +72,22 @@ export default async function handler(request) {
         cleanUpdates[id] = body.platforms[id];
       }
     }
-    await savePlatformSettings(cleanUpdates);
+    saved = (await savePlatformSettings(cleanUpdates)) && saved;
   }
 
   if (body?.maintenance && typeof body.maintenance === "object") {
-    await saveMaintenanceSettings(body.maintenance);
+    saved = (await saveMaintenanceSettings(body.maintenance)) && saved;
   }
 
   if (body?.site && typeof body.site === "object") {
-    await saveSiteSettings(body.site);
+    saved = (await saveSiteSettings(body.site)) && saved;
+  }
+
+  if (!saved) {
+    return Response.json(
+      { error: "Gagal menulis ke Vercel KV. Cek KV_REST_API_URL dan KV_REST_API_TOKEN di Environment Variables." },
+      { status: 502 }
+    );
   }
 
   const settings = await loadAllSettings();
