@@ -22,13 +22,24 @@ function base64urlDecode(str) {
 }
 
 function getSecret() {
-  // Prioritas: ADMIN_SESSION_SECRET kalau ada, kalau tidak fallback ke ADMIN_PANEL_KEY.
-  // Ganti salah satu di Environment Variables Vercel untuk memutuskan semua sesi lama.
-  return (
-    process.env.ADMIN_SESSION_SECRET ||
-    process.env.ADMIN_PANEL_KEY ||
-    "yamada-fallback-secret-ganti-di-env"
-  );
+  // Prioritas: ADMIN_SESSION_SECRET kalau ada, kalau tidak pakai ADMIN_PANEL_KEY.
+  // TIDAK ada nilai bawaan lagi: kalau dua-duanya kosong, panel admin mati
+  // (lebih aman daripada memakai secret yang bisa ditebak orang).
+  return process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PANEL_KEY || "";
+}
+
+export function isAdminConfigured() {
+  return Boolean(process.env.ADMIN_PANEL_KEY && getSecret());
+}
+
+// Perbandingan string yang waktunya tidak bergantung pada posisi karakter beda.
+export function safeEqual(a, b) {
+  const x = encoder.encode(String(a));
+  const y = encoder.encode(String(b));
+  let diff = x.length ^ y.length;
+  const len = Math.max(x.length, y.length);
+  for (let i = 0; i < len; i++) diff |= (x[i] ?? 0) ^ (y[i] ?? 0);
+  return diff === 0;
 }
 
 async function getCryptoKey() {
@@ -42,6 +53,7 @@ async function getCryptoKey() {
 }
 
 export async function createAdminToken(ttlMs = 12 * 60 * 60 * 1000) {
+  if (!getSecret()) throw new Error("ADMIN_PANEL_KEY belum diisi");
   const payload = JSON.stringify({ exp: Date.now() + ttlMs });
   const payloadB64 = base64url(encoder.encode(payload));
   const key = await getCryptoKey();
@@ -50,6 +62,7 @@ export async function createAdminToken(ttlMs = 12 * 60 * 60 * 1000) {
 }
 
 export async function verifyAdminToken(token) {
+  if (!getSecret()) return false;
   if (!token || typeof token !== "string" || !token.includes(".")) return false;
 
   const [payloadB64, sigB64] = token.split(".");
