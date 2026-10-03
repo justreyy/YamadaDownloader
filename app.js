@@ -52,7 +52,7 @@ const DEFAULT_SITE_SETTINGS = {
   name: "YamadaDownloader",
   description: "YamadaDownloader - download video dari TikTok, Instagram, dan YouTube.",
   logoUrl: "LOGO.jpg",
-  csLink: "https://wa.me/6283869485575"
+  csLink: "https://wa.me/6283196943411"
 };
 let siteSettings = { ...DEFAULT_SITE_SETTINGS };
 
@@ -356,7 +356,7 @@ async function unlockPanel(){
     setAdminToken(data.token);
     input.value = "";
     showPanelDashboard();
-    await loadPanelStats();
+    await Promise.all([loadPanelStats(), loadAdminSettings()]);
   }catch(error){
     showPanelLocked("Gagal terhubung ke server: " + error.message);
   }finally{
@@ -783,7 +783,7 @@ async function downloadVideo(){
     }
 
     if(!response.ok || data.error){
-      throw new Error(data.error || "Downloader API belum dikonfigurasi atau link tidak dapat diproses.");
+      throw new Error(data.error || "Link tidak dapat diproses saat ini.");
     }
 
     renderDownloadResult(data);
@@ -795,7 +795,7 @@ async function downloadVideo(){
     box.innerHTML =
       `<strong>Download belum dapat diproses.</strong><br>` +
       `${escapeHtml(error.message)}<br>` +
-      `<small>Pastikan DOWNLOADER_API_URL sudah diisi di Vercel dan API downloader kamu aktif.</small>`;
+      `<small>Pastikan link publik dan benar, lalu coba lagi. Kalau terus gagal, hubungi Customer Service.</small>`;
   }finally{
     btn.disabled = false;
     btn.innerHTML = "<span>↓</span> Download Video";
@@ -944,8 +944,10 @@ async function downloadSelectedMedia(
 
     // Buat nama file
     const safeTitle = String(title || "YamadaDownloader")
-      .replace(/[\\/:*?"<>|]/g, "")
-      .trim();
+      .replace(/[\\/:*?"<>|\r\n]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 80);
 
     const safeExtension = String(extension || "mp4")
       .replace(/[^a-zA-Z0-9]/g, "");
@@ -1535,7 +1537,7 @@ async function processRemoveBg() {
 
     // File → Base64
     const base64 =
-      await fileToBase64(
+      await prepareImageForRemoveBg(
         removeBgSelectedFile
       );
 
@@ -1683,4 +1685,42 @@ function fileToBase64(file) {
     }
   );
 
+}
+
+
+// Batas body request Vercel ±4.5 MB, dan base64 membengkak ±33%. Gambar
+// yang lebih dari 3 MB diperkecil dulu di browser supaya tidak ditolak server.
+async function prepareImageForRemoveBg(file) {
+  const MAX_BYTES = 3 * 1024 * 1024;
+  if (file.size <= MAX_BYTES) return fileToBase64(file);
+
+  const objectUrl = URL.createObjectURL(file);
+
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => reject(new Error("Gambar tidak bisa dibaca."));
+      el.src = objectUrl;
+    });
+
+    for (const maxSide of [2400, 1800, 1200]) {
+      const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.naturalWidth * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
+
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+      if (dataUrl.length * 0.75 <= MAX_BYTES) return dataUrl;
+    }
+
+    throw new Error("Gambar terlalu besar. Pilih gambar yang lebih kecil.");
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
 }
