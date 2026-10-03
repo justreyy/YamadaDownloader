@@ -6,20 +6,21 @@ export const config = { runtime: "edge" };
 // pakai downloader. Untuk UBAH pengaturan, pakai /api/admin-settings yang
 // butuh login Panel Admin.
 
-import { getPlatformSettings, getMaintenanceSettings } from "./_lib/settings.mjs";
+import { getPlatformSettings, getMaintenanceSettings, getSiteSettings } from "./_lib/settings.mjs";
 
 export default async function handler(request) {
   if (request.method !== "GET") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
 
-  const [platforms, maintenance] = await Promise.all([
+  const [platforms, maintenance, site] = await Promise.all([
     getPlatformSettings(),
-    getMaintenanceSettings()
+    getMaintenanceSettings(),
+    getSiteSettings()
   ]);
 
   return Response.json(
-    { platforms, maintenance },
+    { platforms, maintenance, site },
     { status: 200, headers: { "Cache-Control": "no-store" } }
   );
 }
