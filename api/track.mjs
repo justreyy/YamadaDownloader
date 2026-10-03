@@ -3,6 +3,13 @@ export const config = { runtime: "edge" };
 const KV_URL = process.env.KV_REST_API_URL;
 const KV_TOKEN = process.env.KV_REST_API_TOKEN;
 
+// Hanya id tool yang dikenal yang boleh dicatat, supaya orang iseng tidak bisa
+// memenuhi database / memalsukan statistik dengan nama tool acak.
+const ALLOWED_TOOLS = new Set([
+  "youtube", "tiktok", "instagram", "pinterest", "removebg", "imgcompress", "imgresize",
+  "vidcompress", "vidmp3", "vidgif", "thumbnail", "qrgenerator", "photoenhance", "pdfcompress"
+]);
+
 async function kvCommand(pathSegments) {
   if (!KV_URL || !KV_TOKEN) return null;
   try {
@@ -38,7 +45,7 @@ export default async function handler(request) {
       await kvCommand(["incr", "stats:visits"]);
     } else if (event === "tool" && body?.tool) {
       const tool = String(body.tool).replace(/[^a-z0-9_-]/gi, "").slice(0, 40);
-      if (tool) await kvCommand(["hincrby", "stats:tools", tool, "1"]);
+      if (ALLOWED_TOOLS.has(tool)) await kvCommand(["hincrby", "stats:tools", tool, "1"]);
     }
   } catch {
     // no-op
